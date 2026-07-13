@@ -8,6 +8,7 @@ with open(_TAXONOMY_PATH) as f:
 
 CATEGORIES = _DATA["categories"]
 PRIORITIES = _DATA["priorities"]
+PRIORITY_DEFINITIONS = _DATA["priority_definitions"]
 
 VALID_CATEGORY_IDS = {c["id"] for c in CATEGORIES}
 VALID_PRIORITIES = set(PRIORITIES)

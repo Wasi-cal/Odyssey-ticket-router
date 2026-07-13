@@ -81,12 +81,13 @@ def print_report(outcomes):
 
 
 if __name__ == "__main__":
-    from router_stub import mock_router  # temporary stand-in until the v1 prompt/router exists (build step 3)
+    from router import route_ticket
+
 
     print("=== Fallback / malformed-response check ===")
     test_fallback_on_malformed_response()
     print("OK: resolve() fell back to the safe default on malformed input.\n")
 
     print("=== Ticket harness run (mock router - NOT the real prompt) ===")
-    outcomes = run_harness(mock_router)
+    outcomes = run_harness(route_ticket)
     print_report(outcomes)
