@@ -84,14 +84,13 @@ def print_report(outcomes):
 
 
 if __name__ == "__main__":
-    from router import route_ticket
-
+    from router import classify
 
     print("=== Fallback / malformed-response check ===")
     test_fallback_on_malformed_response()
     print("OK: resolve() fell back to the safe default on malformed input.\n")
 
-    print("=== Ticket harness run (mock router - NOT the real prompt) ===")
-    outcomes = run_harness(route_ticket)
+    print("=== Ticket harness run (full pipeline: prompt + retry + fallback) ===")
+    outcomes = run_harness(lambda text: classify(text).result)
     print_report(outcomes)
     
