@@ -71,6 +71,9 @@ def print_report(outcomes):
         for note in o.notes:
             print(f"    {note}")
 
+        if o.got:
+            print(f"    reasoning: {o.got['reasoning']!r}")
+
     latencies = [o.latency_s for o in outcomes]
     if latencies:
         print(
@@ -91,3 +94,4 @@ if __name__ == "__main__":
     print("=== Ticket harness run (mock router - NOT the real prompt) ===")
     outcomes = run_harness(route_ticket)
     print_report(outcomes)
+    
