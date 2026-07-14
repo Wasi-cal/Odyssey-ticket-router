@@ -1,23 +1,19 @@
 import logging
-import os
 import time
-from pathlib import Path
+from typing import Literal
 
-from dotenv import load_dotenv
 from pydantic import BaseModel
 from openai import OpenAI
-from taxonomy import CATEGORIES, PRIORITY_DEFINITIONS
+
+import config
+from taxonomy import CATEGORIES, PRIORITIES, PRIORITY_DEFINITIONS
 from validator import validate, resolve
 
-load_dotenv()
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-
-_LOG_DIR = Path(__file__).resolve().parents[1] / "logs"
-_LOG_DIR.mkdir(exist_ok=True)
+client = OpenAI(api_key=config.OPENAI_API_KEY)
 
 logging.basicConfig(
-    filename=str(_LOG_DIR / "router.log"),
-    level=logging.INFO,
+    filename=str(config.LOG_FILE),
+    level=config.LOG_LEVEL,
     format="%(asctime)s %(levelname)s %(message)s",
 )
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -91,15 +87,19 @@ pre-sales questions unrelated to API, account, or billing specifics.
 Return the category, the priority, and a one-line reasoning for your choice."""
 SYSTEM_PROMPT = build_system_prompt()
 
+CategoryLiteral = Literal[tuple(c["id"] for c in CATEGORIES)]
+PriorityLiteral = Literal[tuple(PRIORITIES)]
+
+
 class TicketClassification(BaseModel):
-    category: str
-    priority: str
+    category: CategoryLiteral
+    priority: PriorityLiteral
     reasoning: str
 
 def route_ticket(ticket_text: str) -> dict | str:
     try:
         response = client.beta.chat.completions.parse(
-            model="gpt-5.4-mini",
+            model=config.MODEL_NAME,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": ticket_text},
@@ -118,7 +118,8 @@ def route_ticket(ticket_text: str) -> dict | str:
     return message.parsed.model_dump()
 
 
-def _preview(ticket_text: str, length: int = 80) -> str:
+def _preview(ticket_text: str, length: int = config.TICKET_PREVIEW_LENGTH) -> str:
+    """This function is used to add the first 80 characters to the logs"""
     flat = ticket_text.replace("\n", " ")
     return flat[:length] + ("..." if len(flat) > length else "")
 

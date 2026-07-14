@@ -1,5 +1,6 @@
 import json
-from dataclasses import dataclass, field
+
+from pydantic import BaseModel, Field
 
 from taxonomy import VALID_CATEGORY_IDS, VALID_PRIORITIES, team_for_category
 
@@ -7,14 +8,13 @@ REQUIRED_FIELDS = ("category", "priority", "reasoning")
 
 FALLBACK_RESULT = {
     "category": "uncategorized",
-    "priority": "Medium",
+    "priority": "High",
     "team": team_for_category("uncategorized"),
     "reasoning": "flagged for human review",
 }
 
 
-@dataclass
-class ValidationResult:
+class ValidationResult(BaseModel):
     is_valid: bool
     errors: list
     result: dict | None = None
@@ -28,18 +28,20 @@ def validate(raw_response) -> ValidationResult:
         try:
             data = json.loads(raw_response)
         except json.JSONDecodeError as e:
-            return ValidationResult(False, [f"not valid JSON: {e}"])
+            return ValidationResult(is_valid=False, errors=[f"not valid JSON: {e}"])
     elif isinstance(raw_response, dict):
         data = raw_response
     else:
-        return ValidationResult(False, [f"unexpected response type: {type(raw_response).__name__}"])
+        return ValidationResult(
+            is_valid=False, errors=[f"unexpected response type: {type(raw_response).__name__}"]
+        )
 
     if not isinstance(data, dict):
-        return ValidationResult(False, ["parsed JSON is not an object"])
+        return ValidationResult(is_valid=False, errors=["parsed JSON is not an object"])
 
     errors = [f"missing field: {name}" for name in REQUIRED_FIELDS if name not in data]
     if errors:
-        return ValidationResult(False, errors)
+        return ValidationResult(is_valid=False, errors=errors)
 
     category = data["category"]
     priority = data["priority"]
@@ -53,7 +55,7 @@ def validate(raw_response) -> ValidationResult:
         errors.append("reasoning is empty")
 
     if errors:
-        return ValidationResult(False, errors)
+        return ValidationResult(is_valid=False, errors=errors)
 
     result = {
         "category": category,
@@ -61,15 +63,14 @@ def validate(raw_response) -> ValidationResult:
         "team": team_for_category(category),
         "reasoning": reasoning,
     }
-    return ValidationResult(True, [], result)
+    return ValidationResult(is_valid=True, errors=[], result=result)
 
 
-@dataclass
-class ResolvedResult:
+class ResolvedResult(BaseModel):
     result: dict
     used_fallback: bool
     attempts_tried: int
-    errors: list = field(default_factory=list)
+    errors: list = Field(default_factory=list)
 
 
 def resolve(attempts) -> ResolvedResult:
@@ -80,6 +81,8 @@ def resolve(attempts) -> ResolvedResult:
     for i, raw in enumerate(attempts, start=1):
         outcome = validate(raw)
         if outcome.is_valid:
-            return ResolvedResult(outcome.result, used_fallback=False, attempts_tried=i)
+            return ResolvedResult(result=outcome.result, used_fallback=False, attempts_tried=i)
         last_errors = outcome.errors
-    return ResolvedResult(dict(FALLBACK_RESULT), used_fallback=True, attempts_tried=len(attempts), errors=last_errors)
+    return ResolvedResult(
+        result=dict(FALLBACK_RESULT), used_fallback=True, attempts_tried=len(attempts), errors=last_errors
+    )
