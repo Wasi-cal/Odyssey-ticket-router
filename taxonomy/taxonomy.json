@@ -1,0 +1,76 @@
+{
+  "categories": [
+    {
+      "id": "billing",
+      "label": "Billing",
+      "description": "Invoices, payments, refunds, subscription/plan changes, pricing questions.",
+      "team": "Billing Team"
+    },
+    {
+      "id": "api_integration",
+      "label": "API & Integration",
+      "description": "API errors, SDK issues, rate limits, auth tokens/keys, webhook/integration failures.",
+      "team": "Developer Support (Tier 2)"
+    },
+    {
+      "id": "account_access",
+      "label": "Account Access",
+      "description": "Login failures, password/2FA resets, locked/suspended accounts, permissions/roles.",
+      "team": "Account & Security Team"
+    },
+    {
+      "id": "product_bug",
+      "label": "Product Bug",
+      "description": "Something in the product is broken or behaving incorrectly (not API-specific).",
+      "team": "Engineering - Product Team"
+    },
+    {
+      "id": "outage",
+      "label": "Outage",
+      "description": "Service down, widespread degradation, \"everything is broken\" reports.",
+      "team": "Engineering - On-Call/SRE"
+    },
+    {
+      "id": "feature_request",
+      "label": "Feature Request",
+      "description": "Asking for new functionality or enhancements.",
+      "team": "Product Team"
+    },
+    {
+      "id": "general_inquiry",
+      "label": "General Inquiry",
+      "description": "How-to questions, documentation questions, pre-sales questions.",
+      "team": "Tier 1 Support"
+    },
+    {
+      "id": "abuse_policy",
+      "label": "Abuse / Policy",
+      "description": "Reports of misuse, content policy violations, security vulnerability disclosures.",
+      "team": "Trust & Safety"
+    },
+    {
+      "id": "uncategorized",
+      "label": "Uncategorized",
+      "description": "Message is too vague/low-info to confidently classify, or the model's response failed validation and the deterministic fallback fired. See 'notes.uncategorized' below - these are two distinct triggers that both land on this label and must be tested separately in the harness.",
+      "team": "Tier 1 Support"
+    }
+  ],
+
+  "priorities": ["High", "Medium", "Low"],
+
+  "priority_definitions": {
+    "High": "Active outage, security incident, account lockout blocking business-critical use, data loss, or a billing issue with imminent service interruption. Also: strong anger/urgency signals combined with real business impact.",
+    "Medium": "Default level. Bug with a workaround, billing disputes without urgency, degraded (not down) functionality, angry tone without clear business-critical impact.",
+    "Low": "Feature requests, general/how-to questions, cosmetic issues, pre-sales inquiries."
+  },
+
+  "edge_case_rules": {
+    "angry_tone": "Raises priority (e.g. Medium -> High). Never changes category - a furious billing complaint is still 'billing', just High priority.",
+    "short_low_info_message": "Model self-selects 'uncategorized' / Medium / Tier 1 rather than confidently guessing a category.",
+    "ambiguous_product_bug_vs_api_integration": "If the ticket mentions API keys, endpoints, SDK, or webhooks -> 'api_integration'; otherwise -> 'product_bug'. Additional tie-break rules should be added here as the harness surfaces new ambiguous pairs."
+  },
+
+  "notes": {
+    "uncategorized": "Two distinct triggers share this label and must NOT be conflated in the harness: (1) model-selected - the ticket is genuinely too vague, and 'uncategorized' is one of the model's allowed output values, chosen deliberately. (2) system-fallback - the model's response failed deterministic validation (bad JSON, category/team/priority not in the allowed lists) after one retry, so the validator overrides the result with the safe default. The harness needs at least one test ticket that should legitimately produce (1), and a separate test that simulates a malformed model response to confirm (2) actually fires."
+  }
+}
