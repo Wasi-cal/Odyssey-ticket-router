@@ -33,3 +33,18 @@ def get_conn():
     `with get_conn() as conn:` - the connection is returned to the pool
     automatically when the block exits."""
     return pool.connection()
+
+
+def insert_ticket(title: str, description: str, resolved) -> int:
+    result = resolved.result
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO ticket (title, description, category_id, priority, reasoning)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id
+                """,
+                (title, description, result["category"], result["priority"], result["reasoning"]),
+            )
+            return cur.fetchone()["id"]

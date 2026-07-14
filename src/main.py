@@ -11,14 +11,11 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from router import classify
-from db import pool
+from db import pool, insert_ticket
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Open the pool once when the app starts, and wait until at least
-    # min_size connections are established so a bad DATABASE_URL fails loudly
-    # at startup rather than on the first request.
     pool.open()
     pool.wait()
     try:
@@ -53,7 +50,10 @@ async def classify_ticket(payload: MessagePayload):
     resolved = classify(text)
     latency_ms = (time.perf_counter() - start) * 1000
 
+    ticket_id = insert_ticket(title=text[:80], description=text, resolved=resolved)
+
     return {
+        "ticket_id": ticket_id,
         **resolved.result,
         "used_fallback": resolved.used_fallback,
         "attempts_tried": resolved.attempts_tried,

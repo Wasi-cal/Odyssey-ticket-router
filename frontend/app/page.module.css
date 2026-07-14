@@ -1,0 +1,188 @@
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+.header h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.header p {
+  color: #5c6370;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e2e5e9;
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 0.75rem;
+  border: 1px solid #cfd4db;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+.textarea:focus {
+  outline: 2px solid #2563eb33;
+  border-color: #2563eb;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.samples {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.samples button {
+  background: #eef1f5;
+  border: 1px solid #dde1e7;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.78rem;
+  color: #3d434c;
+  cursor: pointer;
+}
+.samples button:hover {
+  background: #e3e8ee;
+}
+
+.submit {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.3rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.submit:hover:not(:disabled) {
+  background: #1d4fd7;
+}
+.submit:disabled {
+  background: #9db4e8;
+  cursor: default;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: #8a919c;
+  margin-top: 0.5rem;
+}
+
+.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+
+.result {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.ticketText {
+  font-size: 0.85rem;
+  color: #5c6370;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.team small {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #8a919c;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.15rem;
+}
+
+.badges {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.category {
+  background: #eef1f5;
+  color: #3d434c;
+}
+.High {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.Medium {
+  background: #fef3c7;
+  color: #b45309;
+}
+.Low {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.reasoning {
+  font-size: 0.9rem;
+  color: #3d434c;
+  border-left: 3px solid #e2e5e9;
+  padding-left: 0.75rem;
+}
+
+.meta {
+  font-size: 0.75rem;
+  color: #8a919c;
+}
+
+.fallbackNote {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.historyHeading {
+  font-size: 0.85rem;
+  color: #5c6370;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 1.5rem 0 0.6rem;
+}

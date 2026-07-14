@@ -13,7 +13,7 @@ Interface (ticket text submitted)
   -> branches:
        - valid   -> {category, priority, team, reasoning}
        - invalid -> retry once, then safe fallback
-                    (uncategorized / Medium / Tier 1 Support / "flagged for human review")
+                    (uncategorized / High / Tier 1 Support / "flagged for human review")
   -> both paths converge back to the interface
 ```
 
@@ -21,8 +21,21 @@ Interface (ticket text submitted)
 `category` via the taxonomy's fixed 1:1 mapping, which removes an entire class
 of failure (model picking a team that doesn't match its own category).
 
+`category` and `priority` are typed as `Literal[...]` (built dynamically from
+the taxonomy) in the Pydantic response model, so OpenAI's structured-output
+mode enforces enum membership itself, via constrained decoding, before the
+response ever comes back — confirmed by inspecting the actual outbound
+request payload (`strict: true` + `enum: [...]`). The deterministic validator
+still exists as the second line of defense for what a schema can't catch
+(malformed JSON, API errors, model refusals), but hallucinated category/priority
+strings are now structurally prevented, not just caught after the fact.
+
 Validation is plain deterministic code (JSON parse, enum membership,
-non-empty check) — not a second model checking the first.
+non-empty check) — not a second model checking the first. Every internal data
+shape in the project (`ValidationResult`, `ResolvedResult`, `TestTicket`,
+`TicketOutcome`, and the LLM's own `TicketClassification`) is a Pydantic
+`BaseModel`, kept consistent throughout rather than mixing in stdlib
+`dataclasses`.
 
 ## Taxonomy
 
@@ -44,8 +57,8 @@ imminent billing-driven service interruption. **Medium** = default level.
 **Low** = feature requests, general/how-to, cosmetic issues.
 
 Full definitions and the tie-break rule for ambiguous tickets live in
-`taxonomy.json`, the single source of truth used by both the prompt builder
-and the validator.
+`src/taxonomy/taxonomy.json`, the single source of truth used by both the
+prompt builder and the validator.
 
 ## Edge cases handled
 
@@ -63,17 +76,36 @@ and the validator.
 
 ## Project structure
 
-| File | Purpose |
-|---|---|
-| `taxonomy.json` | Categories, team routing, priority definitions, edge-case rules — source of truth |
-| `taxonomy.py` | Loads `taxonomy.json`, exposes it to the rest of the code |
-| `validator.py` | Deterministic validation (`validate`) + retry-then-fallback resolution (`resolve`) |
-| `router.py` | System prompt, LLM call (`route_ticket`), full pipeline (`classify`) |
-| `tickets.py` | Fixed 15-ticket regression set (12 normal + 3 edge cases) used to catch regressions when the prompt changes |
-| `demo_tickets.py` | Fresh 20-ticket demo set, not reused from `tickets.py`, proving the prompt generalizes beyond tuned examples |
-| `harness.py` | Test runner — validity checks, expected-outcome checks, latency logging |
-| `cli.py` | Interface — paste a ticket (blank line submits), get back structured JSON |
-| `requirements.txt` | Dependencies |
+```
+.
+├── src/
+│   ├── router.py       # system prompt, LLM call (route_ticket), full pipeline (classify)
+│   ├── validator.py    # deterministic validation (validate) + retry-then-fallback (resolve)
+│   ├── config.py       # env loading (.env), model name, log paths — single place for settings
+│   ├── main.py         # FastAPI backend — POST /classify wraps classify(), interactive docs at /docs
+│   ├── taxonomy/
+│   │   ├── taxonomy.json   # categories, team routing, priority defs, edge-case rules — source of truth
+│   │   └── taxonomy.py     # loads taxonomy.json, exposes it to the rest of the code
+│   └── fronend/
+│       └── cli.py      # terminal interface — paste a ticket (blank line submits)
+├── frontend/           # Next.js web UI — talks to the FastAPI backend via /api/* proxy
+│   ├── app/page.tsx        # the ticket-routing page (form, result card, history)
+│   └── next.config.ts      # proxies /api/* to the backend (BACKEND_URL, default 127.0.0.1:8000)
+├── Tests/
+│   ├── harness.py       # test runner — validity checks, expected-outcome checks, latency logging
+│   └── data/
+│       ├── tickets.py       # fixed 15-ticket regression set (12 normal + 3 edge cases)
+│       └── demo_tickets.py  # fresh 20-ticket demo set, not reused from tickets.py
+├── logs/
+│   └── router.log      # written at runtime, not committed
+└── requirements.txt
+```
+
+Note: `src/` and `Tests/` are separate top-level directories (with
+`taxonomy/` nested inside `src/`), so each entry-point script (`cli.py`,
+`harness.py`, `demo_tickets.py`) adds its sibling directories to `sys.path`
+at the top of the file before importing across them. If you add a new entry
+point, it'll need the same treatment.
 
 ## Setup
 
@@ -81,6 +113,9 @@ and the validator.
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+
+# frontend (requires Node.js 18+)
+cd frontend && npm install && cd ..
 ```
 
 Create a `.env` file in the project root:
@@ -91,19 +126,55 @@ OPENAI_API_KEY=sk-...
 
 ## Usage
 
+### Web UI (Next.js + FastAPI)
+
+Two processes, run from the project root:
+
+```bash
+# Terminal 1 — backend API on :8000
+uvicorn src.main:app --port 8000
+
+# Terminal 2 — frontend on :3000 (first time: cd frontend && npm install)
+cd frontend && npm run dev
+```
+
+Open http://localhost:3000 — paste a ticket (or click a sample) and route it.
+The backend also serves interactive API docs at http://127.0.0.1:8000/docs,
+and `POST /classify` can be called directly:
+
+```bash
+curl -X POST http://127.0.0.1:8000/classify \
+  -H "Content-Type: application/json" \
+  -d '{"ticket": "I was charged twice this month, please refund the duplicate."}'
+```
+
+The response is the routed result plus observability fields:
+`{category, priority, team, reasoning, used_fallback, attempts_tried, latency_ms}`.
+
+### CLI and test harness
+
 ```bash
 # Interactive CLI
-python cli.py
+python src/fronend/cli.py
 
 # Regression suite (15 fixed tickets incl. the 3 edge cases)
-python harness.py
+python Tests/harness.py
 
 # Fresh 20-ticket demo set
-python demo_tickets.py
+python Tests/data/demo_tickets.py
 ```
 
 Model used: `gpt-5.4-mini` (small/fast/cheap, sufficient for a well-defined
-classification task — see `router.py`).
+classification task — see `src/router.py`).
+
+## Logging
+
+Every call to `classify()` writes to `logs/router.log` (not committed — it
+can contain ticket text): a line per routed ticket (category/priority/team,
+attempt count, latency), a `WARNING` when a retry is triggered, and an
+`ERROR` when the fallback fires (with the validation errors that caused it
+and a preview of the offending ticket). Useful for spotting how often
+tickets need a retry/fallback in practice, not just in the unit test.
 
 ## Test results (latest run)
 
@@ -125,11 +196,8 @@ needs to be collected by hand against the same ticket set.
   a billing ticket alternating between Medium/High priority across runs).
   The taxonomy and retry/fallback layer contain the damage, but exact pass
   counts on borderline tickets will vary slightly by run.
-- **The LLM's output schema isn't enum-constrained.** `category` and
-  `priority` are typed as plain strings in the Pydantic response model, not
-  `Literal`/`Enum`, so OpenAI's structured-output guarantee only enforces
-  valid JSON *shape* — enum correctness relies entirely on the deterministic
-  validator's retry-then-fallback layer.
 - The retry/fallback path has been unit-tested with simulated malformed
   input, but hasn't yet been observed firing on a genuine (non-simulated)
-  model response.
+  model response — the `Literal` enum constraint above has made this even
+  rarer, since it removes the most likely real-world trigger (a hallucinated
+  category/priority string).
