@@ -3,9 +3,8 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT / "src"))
-sys.path.insert(0, str(_ROOT / "src" / "taxonomy"))
+_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_ROOT / "backend" / "src"))
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException

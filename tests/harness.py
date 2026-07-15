@@ -5,9 +5,8 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 _ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(_ROOT / "src"))
-sys.path.insert(0, str(_ROOT / "src" / "taxonomy"))
-sys.path.insert(0, str(_ROOT / "Tests" / "data"))
+sys.path.insert(0, str(_ROOT / "backend" / "src"))
+sys.path.insert(0, str(_ROOT / "tests" / "data"))
 
 from tickets import ALL_TICKETS
 from validator import validate, resolve, FALLBACK_RESULT
