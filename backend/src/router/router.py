@@ -94,8 +94,8 @@ Return the category, the priority, a one-line reasoning for your choice, the sho
 
 SYSTEM_PROMPT = build_system_prompt()
 
-CategoryLiteral = Literal[tuple(c["id"] for c in CATEGORIES)]
-PriorityLiteral = Literal[tuple(PRIORITIES)]
+CategoryLiteral = Literal[tuple(c["id"] for c in CATEGORIES)]  # type: ignore[valid-type]
+PriorityLiteral = Literal[tuple(PRIORITIES)]  # type: ignore[valid-type]
 
 
 class TicketClassification(BaseModel):
