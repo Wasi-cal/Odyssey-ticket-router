@@ -38,10 +38,14 @@ export default function MyTicketsPage() {
 
   return (
     <main className="page">
-      <h1 className="page-title">My tickets</h1>
-      <p className="page-subtitle">
-        {getUserEmail() ? `Submitted by ${getUserEmail()}` : " "}
-      </p>
+      <div className="page-header">
+        <h1 className="page-title">My tickets</h1>
+        {state.kind === "ready" && state.tickets.length > 0 && (
+          <span className="ticket-count">
+            Total: <strong>{state.tickets.length}</strong>
+          </span>
+        )}
+      </div>
 
       <div className="card">
         {state.kind === "loading" && <div className="state">Loading tickets…</div>}
@@ -59,37 +63,42 @@ export default function MyTicketsPage() {
         )}
 
         {state.kind === "ready" && state.tickets.length > 0 && (
-          <div className="ticket-list">
-            <div className="list-head">
-              <span>Ref</span>
-              <span>Title</span>
-              <span className="category">Category</span>
-              <span>Priority</span>
-              <span className="status">Status</span>
-              <span className="assigned-to">Assigned to</span>
-              <span className="reports-to">Reports to</span>
-              <span className="reasoning">Reasoning</span>
-              <span className="updated">Updated</span>
+          <div className="ticket-table-wrapper">
+            <div className="ticket-list">
+              <div className="list-head">
+                <span className="ref">Ref</span>
+                <span className="title">Title</span>
+                <span className="category">Category</span>
+                <span className="priority">Priority</span>
+                <span className="status">Status</span>
+                <span className="assigned-to">Assigned to</span>
+                <span className="reports-to">Reports to</span>
+                <span className="updated">Updated</span>
+              </div>
+              
+              <div className="list-body">
+                {state.tickets.map((t) => (
+                  <Link
+                    key={t.ticket_ref}
+                    href={`/tickets/${encodeURIComponent(t.ticket_ref)}`}
+                    className="ticket-row"
+                  >
+                    <span className="ref">{t.ticket_ref}</span>
+                    <span className="title" title={t.title}>{t.title}</span>
+                    <span className="category">{t.category}</span>
+                    <span className="priority">
+                      <PriorityBadge priority={t.priority} />
+                    </span>
+                    <span className="status">
+                      <StatusBadge status={t.status} />
+                    </span>
+                    <span className="assigned-to">{t.assigned_to ?? "Unassigned"}</span>
+                    <span className="reports-to">{t.reports_to ?? "—"}</span>
+                    <span className="updated">{relativeTime(t.updated_at)}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
-            {state.tickets.map((t) => (
-              <Link
-                key={t.ticket_ref}
-                href={`/tickets/${encodeURIComponent(t.ticket_ref)}`}
-                className="ticket-row"
-              >
-                <span className="ref">{t.ticket_ref}</span>
-                <span className="title">{t.title}</span>
-                <span className="category">{t.category}</span>
-                <PriorityBadge priority={t.priority} />
-                <StatusBadge status={t.status} />
-                <span className="assigned-to">{t.assigned_to ?? "Unassigned"}</span>
-                <span className="reports-to">{t.reports_to ?? "—"}</span>
-                <span className="reasoning" title={t.reasoning ?? undefined}>
-                  {t.reasoning ?? "—"}
-                </span>
-                <span className="updated">{relativeTime(t.updated_at)}</span>
-              </Link>
-            ))}
           </div>
         )}
       </div>
