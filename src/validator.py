@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 from taxonomy import VALID_CATEGORY_IDS, VALID_PRIORITIES, team_for_category
 
-REQUIRED_FIELDS = ("category", "priority", "reasoning", "title")
+REQUIRED_FIELDS = ("category", "priority", "reasoning", "title", "estimated_time")
 
 FALLBACK_RESULT = {
     "category": "uncategorized",
@@ -12,6 +12,7 @@ FALLBACK_RESULT = {
     "team": team_for_category("uncategorized"),
     "reasoning": "flagged for human review",
     "title": "Flagged for manual review",
+    "estimated_time": "Unknown - pending manual review",
 }
 
 
@@ -47,7 +48,9 @@ def validate(raw_response) -> ValidationResult:
     category = data["category"]
     priority = data["priority"]
     reasoning = data["reasoning"]
-    title = data["title"]   
+    title = data["title"]
+    estimated_time = data["estimated_time"]
+ 
 
     if category not in VALID_CATEGORY_IDS:
         errors.append(f"invalid category: {category!r}")
@@ -60,12 +63,13 @@ def validate(raw_response) -> ValidationResult:
         return ValidationResult(is_valid=False, errors=errors)
 
     result = {
-        "category": category,
-        "priority": priority,
-        "team": team_for_category(category),
-        "reasoning": reasoning,
-        "title": title,  
-    }
+    "category": category,
+    "priority": priority,
+    "team": team_for_category(category),
+    "reasoning": reasoning,
+    "title": title,
+    "estimated_time": estimated_time,
+}
     return ValidationResult(is_valid=True, errors=[], result=result)
 
 

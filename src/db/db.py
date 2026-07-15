@@ -17,7 +17,7 @@ Rows come back as dicts (dict_row), so `row["category_id"]` works.
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 
-import config
+import config as config
 
 pool = ConnectionPool(
     conninfo=config.DATABASE_URL,
@@ -35,17 +35,42 @@ def get_conn():
     return pool.connection()
 
 
-def insert_ticket(description: str, resolved) -> str:
+_PRIORITY_TO_ROLE = {"High": "Senior Specialist", "Medium": "Specialist", "Low": "Associate"}
+
+def insert_ticket(description: str, resolved, submitted_by: str) -> str:
     result = resolved.result
+    role = _PRIORITY_TO_ROLE[result["priority"]]
+
     with pool.connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO ticket (title, description, category_id, priority, reasoning)
-                VALUES (%s, %s, %s, %s, %s)
+                SELECT e.employee_id
+                FROM employee e
+                JOIN category c ON c.team_id = e.team_id
+                LEFT JOIN ticket t
+                    ON t.assigned_to = e.employee_id
+                    AND t.status NOT IN ('Resolved', 'Closed')
+                WHERE c.category_id = %s AND e.role = %s
+                GROUP BY e.employee_id
+                ORDER BY COUNT(t.id) ASC, e.employee_id ASC
+                LIMIT 1
+                """,
+                (result["category"], role),
+            )
+            row = cur.fetchone()
+            assigned_to = row["employee_id"] if row else None
+
+            cur.execute(
+                """
+                INSERT INTO ticket
+                    (title, description, category_id, priority, reasoning,
+                     assigned_to, submitted_by, estimated_time)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING ticket_ref
                 """,
-                (result["title"], description, result["category"], result["priority"], result["reasoning"]),
+                (result["title"], description, result["category"], result["priority"],
+                 result["reasoning"], assigned_to, submitted_by, result["estimated_time"]),
             )
             return cur.fetchone()["ticket_ref"]
         

@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import BaseModel
 from openai import OpenAI
 
-import config
+import config as config
 from taxonomy import CATEGORIES, PRIORITIES, PRIORITY_DEFINITIONS
 from validator import validate, resolve
 
@@ -84,9 +84,13 @@ category at all and has nothing to do with the requester's own account,
 workspace, or data — e.g. broad product questions, documentation lookups, or
 pre-sales questions unrelated to API, account, or billing specifics.
 
+Also estimate how long this ticket will likely take to resolve, as a short
+human-readable range (e.g. "a few hours", "1-2 business days"). This is a
+rough estimate for planning, not a commitment.
+
 Also generate a short title: a brief, specific summary of the ticket, like a
 subject line, not a restatement of the category or your reasoning.
-Return the category, the priority, a one-line reasoning for your choice, and the short title."""
+Return the category, the priority, a one-line reasoning for your choice, the short title and the exstimated time."""
 
 SYSTEM_PROMPT = build_system_prompt()
 
@@ -99,7 +103,9 @@ class TicketClassification(BaseModel):
     priority: PriorityLiteral
     reasoning: str
     title: str
+    estimated_time: str
 
+    
 def route_ticket(ticket_text: str) -> dict | str:
     try:
         response = client.beta.chat.completions.parse(

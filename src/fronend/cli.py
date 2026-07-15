@@ -7,7 +7,7 @@ _ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_ROOT / "src"))
 sys.path.insert(0, str(_ROOT / "src" / "taxonomy"))
 
-from router import classify
+from backend.src.router import classify
 
 
 def read_ticket() -> str | None:

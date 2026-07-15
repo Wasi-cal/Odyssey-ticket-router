@@ -1,5 +1,5 @@
-from validator import FALLBACK_RESULT, ResolvedResult
-from db import insert_ticket
+from backend.src.validator import FALLBACK_RESULT, ResolvedResult
+from backend.src.db import insert_ticket
 
 fake_resolved = ResolvedResult(
     result=dict(FALLBACK_RESULT),
