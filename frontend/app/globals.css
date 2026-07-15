@@ -211,7 +211,7 @@ a:hover {
 
 .ticket-row {
   display: grid;
-  grid-template-columns: 80px minmax(0, 1fr) 150px 90px 110px 130px 120px minmax(0, 1fr) 110px;
+  grid-template-columns: 72px minmax(240px, 2fr) 120px 80px 90px 120px 110px 96px;
   gap: 12px;
   align-items: center;
   padding: 10px 16px;
@@ -258,13 +258,6 @@ a:hover {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.ticket-row .reasoning {
-  color: var(--ink-400);
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 .ticket-row .updated {
   color: var(--ink-400);
   font-size: 13px;
@@ -273,7 +266,7 @@ a:hover {
 
 .list-head {
   display: grid;
-  grid-template-columns: 80px minmax(0, 1fr) 150px 90px 110px 130px 120px minmax(0, 1fr) 110px;
+  grid-template-columns: 72px minmax(240px, 2fr) 120px 80px 90px 120px 110px 96px;
   gap: 12px;
   padding: 8px 16px;
   border-bottom: 2px solid var(--line);
@@ -306,13 +299,11 @@ a:hover {
   .ticket-row .updated,
   .ticket-row .assigned-to,
   .ticket-row .reports-to,
-  .ticket-row .reasoning,
   .list-head .category,
   .list-head .updated,
   .list-head .status,
   .list-head .assigned-to,
   .list-head .reports-to,
-  .list-head .reasoning,
   .ticket-row .badge.status-badge {
     display: none;
   }
