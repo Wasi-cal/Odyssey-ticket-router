@@ -35,7 +35,7 @@ def get_conn():
     return pool.connection()
 
 
-def insert_ticket(title: str, description: str, resolved) -> int:
+def insert_ticket(description: str, resolved) -> str:
     result = resolved.result
     with pool.connection() as conn:
         with conn.cursor() as cur:
@@ -43,8 +43,9 @@ def insert_ticket(title: str, description: str, resolved) -> int:
                 """
                 INSERT INTO ticket (title, description, category_id, priority, reasoning)
                 VALUES (%s, %s, %s, %s, %s)
-                RETURNING id
+                RETURNING ticket_ref
                 """,
-                (title, description, result["category"], result["priority"], result["reasoning"]),
+                (result["title"], description, result["category"], result["priority"], result["reasoning"]),
             )
-            return cur.fetchone()["id"]
+            return cur.fetchone()["ticket_ref"]
+        

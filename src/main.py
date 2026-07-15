@@ -50,7 +50,7 @@ async def classify_ticket(payload: MessagePayload):
     resolved = classify(text)
     latency_ms = (time.perf_counter() - start) * 1000
 
-    ticket_id = insert_ticket(title=text[:80], description=text, resolved=resolved)
+    ticket_id = insert_ticket(description=text, resolved=resolved)
 
     return {
         "ticket_id": ticket_id,

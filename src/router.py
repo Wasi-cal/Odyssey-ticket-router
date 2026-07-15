@@ -84,7 +84,10 @@ category at all and has nothing to do with the requester's own account,
 workspace, or data — e.g. broad product questions, documentation lookups, or
 pre-sales questions unrelated to API, account, or billing specifics.
 
-Return the category, the priority, and a one-line reasoning for your choice."""
+Also generate a short title: a brief, specific summary of the ticket, like a
+subject line, not a restatement of the category or your reasoning.
+Return the category, the priority, a one-line reasoning for your choice, and the short title."""
+
 SYSTEM_PROMPT = build_system_prompt()
 
 CategoryLiteral = Literal[tuple(c["id"] for c in CATEGORIES)]
@@ -95,6 +98,7 @@ class TicketClassification(BaseModel):
     category: CategoryLiteral
     priority: PriorityLiteral
     reasoning: str
+    title: str
 
 def route_ticket(ticket_text: str) -> dict | str:
     try:
