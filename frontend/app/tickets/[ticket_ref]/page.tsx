@@ -71,9 +71,19 @@ export default function TicketDetailPage() {
         <div className="card detail-main">
           <h1>{t.title}</h1>
           <p className="description">{t.description || "No description."}</p>
+          {t.reasoning && (
+            <div className="reasoning">
+              <span className="label">Why this routing?</span>
+              {t.reasoning}
+            </div>
+          )}
         </div>
 
         <dl className="card detail-side">
+          <div className="row">
+            <dt>Team</dt>
+            <dd>{t.team ?? "—"}</dd>
+          </div>
           <div className="row">
             <dt>Assigned to</dt>
             <dd>{t.assigned_to ?? "Unassigned"}</dd>

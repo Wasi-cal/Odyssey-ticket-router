@@ -322,6 +322,25 @@ a:hover {
   color: var(--ink-600);
   overflow-wrap: break-word;
 }
+.detail-main .reasoning {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: var(--blue-50);
+  border-left: 3px solid var(--blue-600);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--ink-600);
+  overflow-wrap: break-word;
+}
+.detail-main .reasoning .label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--ink-400);
+  margin-bottom: 4px;
+}
 
 .detail-side {
   padding: 8px 20px;

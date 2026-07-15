@@ -29,6 +29,7 @@ export type TicketDetail = TicketSummary & {
   role: string | null; // assignee's role
   estimated_time: string | null; // e.g. "4h"
   created_at?: string;
+  team: string | null; // team the ticket was routed to, e.g. "Billing Team"
 };
 
 const API_BASE = "/api";
@@ -190,6 +191,7 @@ function normalizeTicket(raw: unknown): TicketDetail {
     estimated_time:
       str(t.estimated_time) ?? num(t.estimated_time)?.toString() ?? null,
     created_at: str(t.created_at),
+    team: str(t.team) ?? null,
   };
 }
 
