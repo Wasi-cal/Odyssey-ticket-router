@@ -29,3 +29,14 @@ DATABASE_URL = os.environ.get(
     "DATABASE_URL",
     "postgresql://wasi@localhost:5432/ticket_router",  # local dev default
 )
+
+
+#AUTH
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
+if not JWT_SECRET_KEY:
+    raise RuntimeError(
+        "JWT_SECRET_KEY is not set. Add it to your .env file, e.g.:\n"
+        "JWT_SECRET_KEY=<a long random string>"
+    )
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRY_HOURS = 24

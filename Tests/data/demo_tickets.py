@@ -3,10 +3,10 @@ from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_ROOT / "src"))
-sys.path.insert(0, str(_ROOT / "taxonomy"))
+sys.path.insert(0, str(_ROOT / "src" / "taxonomy"))
 sys.path.insert(0, str(_ROOT / "Tests"))
 
-from tickets import TestTicket
+from backend.Tests.data.tickets import TestTicket
 
 # Fresh 20-ticket demo set - none of these are reused from tickets.py (the
 # regression set the prompt was tuned against). Point is to show the prompt
@@ -25,133 +25,133 @@ from tickets import TestTicket
 DEMO_TICKETS = [
     # billing
     TestTicket(
-        "d01",
-        "My invoice this month is $40 higher than my usual plan cost, and I don't see any "
+        id="d01",
+        text="My invoice this month is $40 higher than my usual plan cost, and I don't see any "
         "add-ons or usage overage listed. Can someone explain the charge?",
-        "billing", frozenset({"Medium"}),
+        expected_category="billing", expected_priorities=frozenset({"Medium"}),
     ),
     TestTicket(
-        "d02",
-        "I upgraded to the Team plan last week but I'm still being billed at the old Starter "
+        id="d02",
+        text="I upgraded to the Team plan last week but I'm still being billed at the old Starter "
         "rate. Can you correct this before my next invoice?",
-        "billing", frozenset({"Medium"}),
+        expected_category="billing", expected_priorities=frozenset({"Medium"}),
     ),
     TestTicket(
-        "d03",
-        "Our payment method on file expired and I can't find where to update it in the settings page.",
-        "billing", frozenset({"Medium", "High"}),
+        id="d03",
+        text="Our payment method on file expired and I can't find where to update it in the settings page.",
+        expected_category="billing", expected_priorities=frozenset({"Medium", "High"}),
     ),
 
     # api_integration
     TestTicket(
-        "d04",
-        "We're seeing intermittent 500 errors from the /v1/embeddings endpoint for about "
+        id="d04",
+        text="We're seeing intermittent 500 errors from the /v1/embeddings endpoint for about "
         "1 in 20 requests over the last hour.",
-        "api_integration", frozenset({"High"}),
+        expected_category="api_integration", expected_priorities=frozenset({"High"}),
     ),
     TestTicket(
-        "d05",
-        "Is there a way to increase our organization's concurrent request limit? We're hitting "
+        id="d05",
+        text="Is there a way to increase our organization's concurrent request limit? We're hitting "
         "429s during peak traffic.",
-        "api_integration", frozenset({"Medium", "High"}),
+        expected_category="api_integration", expected_priorities=frozenset({"Medium", "High"}),
     ),
     TestTicket(
-        "d06",
-        "How do I paginate through results when calling the /v1/list-runs endpoint from the "
+        id="d06",
+        text="How do I paginate through results when calling the /v1/list-runs endpoint from the "
         "Python SDK?",
-        "general_inquiry", frozenset({"Low"}),
+        expected_category="general_inquiry", expected_priorities=frozenset({"Low"}),
         tags=["edge_ambiguous"],
     ),
 
     # account_access
     TestTicket(
-        "d07",
-        "I need to remove a former employee's access to our workspace immediately, they left "
+        id="d07",
+        text="I need to remove a former employee's access to our workspace immediately, they left "
         "the company yesterday.",
-        "account_access", frozenset({"High"}),
+        expected_category="account_access", expected_priorities=frozenset({"High"}),
     ),
     TestTicket(
-        "d08",
-        "Can I merge two workspaces under one account? We accidentally created a duplicate org.",
-        "account_access", frozenset({"Low", "Medium"}),
+        id="d08",
+        text="Can I merge two workspaces under one account? We accidentally created a duplicate org.",
+        expected_category="account_access", expected_priorities=frozenset({"Low", "Medium"}),
     ),
     TestTicket(
-        "d09",
-        "None of my team members can see the new project I created, even though I gave them "
+        id="d09",
+        text="None of my team members can see the new project I created, even though I gave them "
         "'Editor' access.",
-        "account_access", frozenset({"Medium"}),
+        expected_category="account_access", expected_priorities=frozenset({"Medium"}),
     ),
 
     # general_inquiry
     TestTicket(
-        "d10",
-        "Do you have a comparison of your Pro vs Enterprise plans somewhere?",
-        "general_inquiry", frozenset({"Low"}),
+        id="d10",
+        text="Do you have a comparison of your Pro vs Enterprise plans somewhere?",
+        expected_category="general_inquiry", expected_priorities=frozenset({"Low"}),
     ),
     TestTicket(
-        "d11",
-        "What programming languages do your official SDKs support?",
-        "general_inquiry", frozenset({"Low"}),
+        id="d11",
+        text="What programming languages do your official SDKs support?",
+        expected_category="general_inquiry", expected_priorities=frozenset({"Low"}),
     ),
     TestTicket(
-        "d12",
-        "Is there a changelog or release notes page where I can see what's new each month?",
-        "general_inquiry", frozenset({"Low"}),
+        id="d12",
+        text="Is there a changelog or release notes page where I can see what's new each month?",
+        expected_category="general_inquiry", expected_priorities=frozenset({"Low"}),
     ),
 
     # outage
     TestTicket(
-        "d13",
-        "Our production integration has been down for 15 minutes, every API call returns a 503.",
-        "outage", frozenset({"High"}),
+        id="d13",
+        text="Our production integration has been down for 15 minutes, every API call returns a 503.",
+        expected_category="outage", expected_priorities=frozenset({"High"}),
     ),
     TestTicket(
-        "d14",
-        "This is the SECOND outage this week and nobody from your team has posted a single "
+        id="d14",
+        text="This is the SECOND outage this week and nobody from your team has posted a single "
         "status update. We are losing customers every minute this stays down - completely unacceptable.",
-        "outage", frozenset({"High"}),
+        expected_category="outage", expected_priorities=frozenset({"High"}),
         tags=["edge_angry_tone"],
     ),
 
     # product_bug
     TestTicket(
-        "d15",
-        "The 'export to PDF' button on the reports page does nothing when I click it, no "
+        id="d15",
+        text="The 'export to PDF' button on the reports page does nothing when I click it, no "
         "error, no download.",
-        "product_bug", frozenset({"Medium"}),
+        expected_category="product_bug", expected_priorities=frozenset({"Medium"}),
     ),
     TestTicket(
-        "d16",
-        "Search results on the knowledge base page are sorted randomly instead of by relevance.",
-        "product_bug", frozenset({"Low", "Medium"}),
+        id="d16",
+        text="Search results on the knowledge base page are sorted randomly instead of by relevance.",
+        expected_category="product_bug", expected_priorities=frozenset({"Low", "Medium"}),
     ),
 
     # feature_request
     TestTicket(
-        "d17",
-        "Would love the ability to set custom alert thresholds for usage instead of just the "
+        id="d17",
+        text="Would love the ability to set custom alert thresholds for usage instead of just the "
         "default 80%/100% warnings.",
-        "feature_request", frozenset({"Low"}),
+        expected_category="feature_request", expected_priorities=frozenset({"Low"}),
     ),
     TestTicket(
-        "d18",
-        "Any plans to support SSO login via Okta? That would help us roll this out company-wide.",
-        "feature_request", frozenset({"Low"}),
+        id="d18",
+        text="Any plans to support SSO login via Okta? That would help us roll this out company-wide.",
+        expected_category="feature_request", expected_priorities=frozenset({"Low"}),
     ),
 
     # abuse_policy
     TestTicket(
-        "d19",
-        "Someone outside our org is using a leaked API key from our account to send large "
+        id="d19",
+        text="Someone outside our org is using a leaked API key from our account to send large "
         "volumes of requests - flagging this as a security concern.",
-        "abuse_policy", frozenset({"High"}),
+        expected_category="abuse_policy", expected_priorities=frozenset({"High"}),
     ),
 
     # vague / short (uncategorized edge case)
     TestTicket(
-        "d20",
-        "nothing works",
-        "uncategorized", frozenset({"Medium"}),
+        id="d20",
+        text="nothing works",
+        expected_category="uncategorized", expected_priorities=frozenset({"Medium"}),
         tags=["edge_short_message"],
     ),
 ]
@@ -159,7 +159,7 @@ DEMO_TICKETS = [
 
 if __name__ == "__main__":
     from router import classify
-    from harness import run_harness, print_report
+    from backend.Tests.harness import run_harness, print_report
 
     outcomes = run_harness(lambda text: classify(text).result, tickets=DEMO_TICKETS)
     print_report(outcomes)

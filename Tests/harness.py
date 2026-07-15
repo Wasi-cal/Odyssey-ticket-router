@@ -1,25 +1,25 @@
 import sys
 import time
-from dataclasses import dataclass, field
 from pathlib import Path
+
+from pydantic import BaseModel, Field
 
 _ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_ROOT / "src"))
-sys.path.insert(0, str(_ROOT / "taxonomy"))
+sys.path.insert(0, str(_ROOT / "src" / "taxonomy"))
 sys.path.insert(0, str(_ROOT / "Tests" / "data"))
 
 from tickets import ALL_TICKETS
 from validator import validate, resolve, FALLBACK_RESULT
 
 
-@dataclass
-class TicketOutcome:
+class TicketOutcome(BaseModel):
     ticket_id: str
     passed: bool
     latency_s: float
     validation_errors: list
     got: dict | None
-    notes: list = field(default_factory=list)
+    notes: list = Field(default_factory=list)
 
 
 def run_harness(router_fn, tickets=ALL_TICKETS):
