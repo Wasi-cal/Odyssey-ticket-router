@@ -165,11 +165,16 @@ export async function fetchTicket(ticket_ref: string): Promise<TicketDetail> {
 function normalizeTicket(raw: unknown): TicketDetail {
   const t = (raw ?? {}) as Record<string, unknown>;
   const assignee = (
-    typeof t.assigned_to === "object" && t.assigned_to !== null
-      ? t.assigned_to
-      : {}
+  typeof t.assigned_to === "object" && t.assigned_to !== null
+    ? t.assigned_to
+    : {}
   ) as Record<string, unknown>;
 
+  const manager = (
+    typeof t.reports_to === "object" && t.reports_to !== null
+      ? t.reports_to
+      : {}
+  ) as Record<string, unknown>;
   return {
     ticket_ref: str(t.ticket_ref) ?? "",
     title: str(t.title) ?? "(untitled)",
@@ -181,7 +186,7 @@ function normalizeTicket(raw: unknown): TicketDetail {
     assigned_to: str(t.assigned_to) ?? str(assignee.name) ?? null,
     description: str(t.description) ?? str(t.text) ?? "",
     role: str(t.role) ?? str(assignee.role) ?? null,
-    reports_to: str(t.reports_to) ?? str(assignee.reports_to) ?? null,
+    reports_to: str(t.reports_to) ?? str(manager.name) ?? null,
     estimated_time:
       str(t.estimated_time) ?? num(t.estimated_time)?.toString() ?? null,
     created_at: str(t.created_at),
