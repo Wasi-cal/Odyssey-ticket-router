@@ -1,8 +1,11 @@
 # Smart Ticket Router
 
-Reads a support ticket for an AI startup's customer support desk and returns
-structured JSON: `category`, `priority` (High/Medium/Low), `team`, and a
-one-line `reasoning`.
+A full-stack support-ticket router for an AI startup's customer support desk.
+A ticket's text goes in; structured JSON comes out: `category`, `priority`
+(High/Medium/Low), `team`, and a one-line `reasoning`. Beyond classification,
+the app has user accounts (JWT auth), persists routed tickets to Postgres,
+auto-assigns each ticket to the least-loaded employee on the right team, and
+serves a Next.js UI for submitting tickets and viewing history.
 
 ## Architecture
 
@@ -57,8 +60,8 @@ imminent billing-driven service interruption. **Medium** = default level.
 **Low** = feature requests, general/how-to, cosmetic issues.
 
 Full definitions and the tie-break rule for ambiguous tickets live in
-`src/taxonomy/taxonomy.json`, the single source of truth used by both the
-prompt builder and the validator.
+`backend/src/taxonomy/taxonomy.json`, the single source of truth used by both
+the prompt builder and the validator.
 
 ## Edge cases handled
 
@@ -78,21 +81,25 @@ prompt builder and the validator.
 
 ```
 .
-├── src/
-│   ├── router.py       # system prompt, LLM call (route_ticket), full pipeline (classify)
-│   ├── validator.py    # deterministic validation (validate) + retry-then-fallback (resolve)
-│   ├── config.py       # env loading (.env), model name, log paths — single place for settings
-│   ├── main.py         # FastAPI backend — POST /classify wraps classify(), interactive docs at /docs
-│   ├── taxonomy/
-│   │   ├── taxonomy.json   # categories, team routing, priority defs, edge-case rules — source of truth
-│   │   └── taxonomy.py     # loads taxonomy.json, exposes it to the rest of the code
-│   └── fronend/
-│       └── cli.py      # terminal interface — paste a ticket (blank line submits)
+├── backend/
+│   └── src/
+│       ├── router.py       # system prompt, LLM call (route_ticket), full pipeline (classify)
+│       ├── validator.py    # deterministic validation (validate) + retry-then-fallback (resolve)
+│       ├── config.py       # env loading (.env), model name, log paths — single place for settings
+│       ├── main.py         # FastAPI backend — POST /classify wraps classify(), interactive docs at /docs
+│       ├── auth/
+│       │   └── auth.py     # password hashing, JWT issuance/verification, user creation
+│       ├── db/
+│       │   └── db.py       # Postgres connection pool + ticket insert/lookup queries
+│       └── taxonomy/
+│           ├── taxonomy.json   # categories, team routing, priority defs, edge-case rules — source of truth
+│           └── taxonomy.py     # loads taxonomy.json, exposes it to the rest of the code
 ├── frontend/           # Next.js web UI — talks to the FastAPI backend via /api/* proxy
 │   ├── app/page.tsx        # the ticket-routing page (form, result card, history)
 │   └── next.config.ts      # proxies /api/* to the backend (BACKEND_URL, default 127.0.0.1:8000)
-├── Tests/
-│   ├── harness.py       # test runner — validity checks, expected-outcome checks, latency logging
+├── tests/
+│   ├── harness.py             # test runner — validity checks, expected-outcome checks, latency logging
+│   ├── test_fallback_insert.py # manual check that a fallback ResolvedResult inserts cleanly
 │   └── data/
 │       ├── tickets.py       # fixed 15-ticket regression set (12 normal + 3 edge cases)
 │       └── demo_tickets.py  # fresh 20-ticket demo set, not reused from tickets.py
@@ -101,11 +108,12 @@ prompt builder and the validator.
 └── requirements.txt
 ```
 
-Note: `src/` and `Tests/` are separate top-level directories (with
-`taxonomy/` nested inside `src/`), so each entry-point script (`cli.py`,
-`harness.py`, `demo_tickets.py`) adds its sibling directories to `sys.path`
-at the top of the file before importing across them. If you add a new entry
-point, it'll need the same treatment.
+Note: `backend/src/` and `tests/` are separate top-level directories, so each
+entry-point script (`harness.py`, `demo_tickets.py`, `test_fallback_insert.py`)
+adds `backend/src` (and its `taxonomy/` subfolder) to `sys.path` at the top of
+the file before importing across them. If you add a new entry point, it'll
+need the same treatment. There is no CLI entry point currently — routing is
+exercised via the FastAPI backend (`POST /classify`) or the Next.js web UI.
 
 ## Setup
 
@@ -122,7 +130,12 @@ Create a `.env` file in the project root:
 
 ```
 OPENAI_API_KEY=sk-...
+JWT_SECRET_KEY=<a long random string>
+DATABASE_URL=postgresql://user@localhost:5432/ticket_router   # optional, defaults to this
 ```
+
+A Postgres database reachable at `DATABASE_URL` is required for accounts and
+ticket persistence (`/auth/*`, `/tickets`) — `POST /classify` works without one.
 
 ## Usage
 
@@ -132,7 +145,7 @@ Two processes, run from the project root:
 
 ```bash
 # Terminal 1 — backend API on :8000
-uvicorn src.main:app --port 8000
+uvicorn backend.src.main:app --port 8000
 
 # Terminal 2 — frontend on :3000 (first time: cd frontend && npm install)
 cd frontend && npm run dev
@@ -151,21 +164,29 @@ curl -X POST http://127.0.0.1:8000/classify \
 The response is the routed result plus observability fields:
 `{category, priority, team, reasoning, used_fallback, attempts_tried, latency_ms}`.
 
-### CLI and test harness
+### API endpoints
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| `POST /classify` | none | Classify ticket text; nothing is persisted (used for live demos/comparisons). |
+| `POST /auth/register` | none | Create an account (`email`, `password`); returns a JWT. |
+| `POST /auth/login` | none | Exchange credentials for a JWT. |
+| `POST /tickets` | bearer | Classify, persist, and auto-assign a ticket to the least-loaded employee on the routed team. |
+| `GET /tickets` | bearer | List the current user's own submitted tickets. |
+| `GET /tickets/{ticket_ref}` | bearer | Fetch one of the current user's tickets, including assignee and their manager. |
+
+### Test harness
 
 ```bash
-# Interactive CLI
-python src/fronend/cli.py
-
 # Regression suite (15 fixed tickets incl. the 3 edge cases)
-python Tests/harness.py
+python tests/harness.py
 
 # Fresh 20-ticket demo set
-python Tests/data/demo_tickets.py
+python tests/data/demo_tickets.py
 ```
 
 Model used: `gpt-5.4-mini` (small/fast/cheap, sufficient for a well-defined
-classification task — see `src/router.py`).
+classification task — see `backend/src/router.py`).
 
 ## Logging
 
