@@ -37,7 +37,7 @@ def get_conn():
 
 _PRIORITY_TO_ROLE = {"High": "Senior Specialist", "Medium": "Specialist", "Low": "Associate"}
 
-def insert_ticket(description: str, resolved, submitted_by: str) -> str:
+def insert_ticket(description: str, resolved, submitted_by: str, submitted_by_user_id: int) -> str:
     result = resolved.result
     role = _PRIORITY_TO_ROLE[result["priority"]]
 
@@ -65,12 +65,13 @@ def insert_ticket(description: str, resolved, submitted_by: str) -> str:
                 """
                 INSERT INTO ticket
                     (title, description, category_id, priority, reasoning,
-                     assigned_to, submitted_by, estimated_time)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                     assigned_to, submitted_by, submitted_by_user_id, estimated_time)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING ticket_ref
                 """,
                 (result["title"], description, result["category"], result["priority"],
-                 result["reasoning"], assigned_to, submitted_by, result["estimated_time"]),
+                 result["reasoning"], assigned_to, submitted_by, submitted_by_user_id,
+                 result["estimated_time"]),
             )
             return cur.fetchone()["ticket_ref"]
         

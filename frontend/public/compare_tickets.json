@@ -1,0 +1,22 @@
+[
+  "You charged my card for the Enterprise plan but I only ever signed up for Pro. Please look into this.",
+  "We switched to annual billing back in March but I just noticed we got charged monthly again this cycle - can you credit the difference?",
+  "Is it possible to get an itemized receipt for tax purposes instead of the summary invoice you send?",
+  "This is the THIRD time you've double-charged my card this year and support keeps closing my tickets without fixing anything. I want a full refund immediately and an explanation for why this keeps happening.",
+  "Our webhook signature verification started failing this morning even though we haven't touched the integration code.",
+  "What's the maximum payload size we can send to the /v1/upload endpoint?",
+  "We rotated our API key and now every request comes back with a 401, even using the new key exactly as shown in the dashboard.",
+  "When I call the /v1/reports endpoint the numbers don't match what's shown on the dashboard for the same date range - not sure if the API or the UI is wrong.",
+  "I'm the workspace owner but I lost access to the email tied to my account and can't get the reset link.",
+  "Can you walk me through setting up SSO so my team stops using individual passwords?",
+  "Two of my colleagues got randomly logged out this morning and now their 2FA codes aren't being accepted at all.",
+  "What's the difference between your sandbox and production environments?",
+  "Do you offer any discounts for nonprofits or educational institutions?",
+  "Where can I find your uptime history or SLA commitments?",
+  "When I duplicate a project, the tags don't carry over even though the settings say they should.",
+  "The notification bell shows a red dot for unread alerts but clicking it opens an empty list.",
+  "Every dashboard page has been returning a blank white screen for the last 10 minutes across our whole team.",
+  "Could you add a dark mode toggle that remembers the user's preference across sessions?",
+  "We discovered one of our workspace members has been sharing their seat login with people outside the company - wanted to flag this before it becomes a bigger issue.",
+  "none of this makes sense"
+]

@@ -6,7 +6,7 @@ sys.path.insert(0, str(_ROOT / "src"))
 sys.path.insert(0, str(_ROOT / "src" / "taxonomy"))
 sys.path.insert(0, str(_ROOT / "Tests"))
 
-from tickets import TestTicket
+from backend.Tests.data.tickets import TestTicket
 
 # Fresh 20-ticket demo set - none of these are reused from tickets.py (the
 # regression set the prompt was tuned against). Point is to show the prompt
@@ -159,7 +159,7 @@ DEMO_TICKETS = [
 
 if __name__ == "__main__":
     from router import classify
-    from harness import run_harness, print_report
+    from backend.Tests.harness import run_harness, print_report
 
     outcomes = run_harness(lambda text: classify(text).result, tickets=DEMO_TICKETS)
     print_report(outcomes)
